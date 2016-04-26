@@ -6,7 +6,9 @@ angular.module("ion.rangeslider", []);
 
 angular.module("ion.rangeslider").directive("ionRangeSlider", [
     function () {
-        
+
+        var stateSyncManager;
+
         return {
             restrict: "E",
             scope: {
@@ -25,11 +27,11 @@ angular.module("ion.rangeslider").directive("ionRangeSlider", [
                 from: "=",
                 to: "=",
                 disable: "=",
-                onChange: "&onChange",
+                onChange: "&",
                 onFinish: "&"
             },
             replace: true,
-            link: function ($scope, $element) {
+            link: function ($scope, $element, $attrs) {
                 $element.ionRangeSlider({
                     min: $scope.min,
                     max: $scope.max,
@@ -46,36 +48,55 @@ angular.module("ion.rangeslider").directive("ionRangeSlider", [
                     from: $scope.from,
                     to: $scope.to,
                     disable: $scope.disable,
-                    onChange: function (a) {
-                        $scope.onChange && $scope.onChange({
-                            a: a
-                        });
+                    onChange: function (sliderState) {
+                        stateSyncManager.updateScope(sliderState);
+                        $attrs.onChange && $scope.onChange && $scope.onChange(sliderState);
                     },
-                    onFinish: $scope.onFinish
+                    onFinish: function (sliderState) {
+                        stateSyncManager.updateScope(sliderState);
+                        $attrs.onFinish && $scope.onFinish && $scope.onFinish(sliderState);
+                    }
                 });
-                var watchers = [];
-                watchers.push($scope.$watch("min", function (value) {
-                    $element.data("ionRangeSlider").update({
-                        min: value
-                    });
-                }));
-                watchers.push($scope.$watch('max', function (value) {
-                    $element.data("ionRangeSlider").update({
-                        max: value
-                    });
-                }));
-                watchers.push($scope.$watch('from', function (value) {
-                    $element.data("ionRangeSlider").update({
-                        from: value
-                    });
-                }));
-                watchers.push($scope.$watch('disable', function (value) {
-                    $element.data("ionRangeSlider").update({
-                        disable: value
-                    });
-                }));
+                stateSyncManager = createStateSyncManager($scope, $element, ['min', 'max', 'from', 'to', 'disable']);
+                stateSyncManager.init();
             }
         }
-        
+
+        function createStateSyncManager($scope, $element, properties) {
+
+            var watches = [];
+            var stateProperties = properties;
+
+            return {
+                updateScope: updateScope,
+                init: enableWatches
+            };
+
+            function enableWatches() {
+                angular.forEach(stateProperties, function(property) {
+                    watches.push($scope.$watch(property, function (value) {
+                        var updateInfo = {};
+                        updateInfo[property] = value;
+                        $element.data("ionRangeSlider").update(updateInfo);
+                    }));
+				});
+            }
+
+            function disableWatches() {
+                angular.forEach(watchs, function(disableWatcherFunction) {
+                    disableWatcherFunction();
+                })
+            }
+
+            function updateScope(sliderState) {
+                disableWatches();
+                $scope.$apply(function () {
+                    angular.forEach(stateProperties, function(property) {
+                        $scope[property] = sliderState[property];
+                    })
+                });
+                enableWatches();
+            }
+        }
     }
 ])
