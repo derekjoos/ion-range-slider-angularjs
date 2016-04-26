@@ -92,7 +92,7 @@ angular.module("ion.rangeslider").directive("ionRangeSlider", [
             }
 
             function disableWatches() {
-                angular.forEach(watchs, function(disableWatcherFunction) {
+                angular.forEach(watches, function(disableWatcherFunction) {
                     disableWatcherFunction();
                 })
             }
