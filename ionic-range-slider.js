@@ -17,7 +17,9 @@ angular.module("ion.rangeslider").directive("ionRangeSlider", [
                 type: "@",
                 prefix: "@",
                 maxPostfix: "@",
-                prettify: "@",
+                prettify: "&",
+                prettifyEnabled: "@",
+                prettifySeparator: "@",
                 grid: "@",
                 gridMargin: "@",
                 postfix: "@",
@@ -37,8 +39,9 @@ angular.module("ion.rangeslider").directive("ionRangeSlider", [
                     max: $scope.max,
                     type: $scope.type,
                     prefix: $scope.prefix,
-                    prettify: $scope.prettify,
                     max_postfix: $scope.maxPostfix,
+                    prettify_enabled: $scope.prettifyEnabled,
+                    prettify_separator: $scope.prettifySeparator,
                     grid: $scope.grid,
                     grid_margin: $scope.gridMargin,
                     postfix: $scope.postfix,
@@ -48,6 +51,12 @@ angular.module("ion.rangeslider").directive("ionRangeSlider", [
                     from: $scope.from,
                     to: $scope.to,
                     disable: $scope.disable,
+                    prettify: function (value) {
+                        if($attrs.prettify && $scope.prettify) {
+                            return $scope.prettify(value);
+                        }
+                        return value;
+                    },
                     onChange: function (sliderState) {
                         stateSyncManager.updateScope(sliderState);
                         $attrs.onChange && $scope.onChange && $scope.onChange(sliderState);
